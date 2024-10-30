@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Word Converter | โปรแกรมแปลงคำราชาศัพท์</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Royal Word Converter <br> <span style="font-size: 20px; color: #007bff;">โปรแกรมแปลงคำราชาศัพท์</span></h1>
+        <input type="text" id="normalWord" placeholder="กรุณาใส่คำธรรมดา" required>
+        <button id="convertButton">แปลง</button>
+        <div class="output" id="outputArea"></div>
+    </div>
+
+    <script>
+        const royalWordsExtended = {
+            "หลาน": ["พระนัดดา", "หลานเธอ", "หลานราช"],
+            "พี่": ["พระเชษฐา", "พระเชษฐภคินี"],
+            "น้อง": ["พระอนุชา", "พระขนิษฐา"],
+            // เพิ่มคำอื่น ๆ ที่ต้องการแปลในที่นี้
+        };
+
+        function toRoyalWord(normalWord) {
+            const threshold = 0.5; // ค่าความคล้ายคลึงที่ยอมรับได้
+            let matches = [];
+
+            // ตรวจสอบคำที่ตรงกันโดยตรง
+            if (royalWordsExtended[normalWord]) {
+                return `คำราชาศัพท์ที่แปลงจาก '${normalWord}' คือ: ${royalWordsExtended[normalWord].map(word => `'${word}'`).join(", ")}`;
+            }
+
+            // ค้นหาคำที่ใกล้เคียง
+            for (const word in royalWordsExtended) {
+                const similarity = getSimilarity(normalWord, word);
+                if (similarity >= threshold) {
+                    matches.push({
+                        original: word,
+                        translated: royalWordsExtended[word],
+                        similarity
+                    });
+                }
+            }
+
+            // จัดเรียงคำที่ใกล้เคียงตามระดับความคล้ายคลึง
+            matches.sort((a, b) => b.similarity - a.similarity);
+
+            // แสดงผลคำที่ใกล้เคียงทั้งหมด
+            if (matches.length > 0) {
+                return `คำที่ใกล้เคียงกับ '${normalWord}' คือ: ${matches.map(match => `${match.original} (${match.translated.join(", ")})`).join(" หรือ ")}`;
+            }
+
+            return `ให้เติมคำว่า 'ทรง' ไว้ด้านหน้า '${normalWord}'\n***กรุณาใส่คำที่ใกล้เคียงที่สุดเพราะอาจจะไม่มีความหมายหรือไม่สุภาพ***`;
+        }
+
+        // ฟังก์ชันเพื่อคำนวณความคล้ายคลึงของคำ
+        function getSimilarity(str1, str2) {
+            const maxLength = Math.max(str1.length, str2.length);
+            let matches = 0;
+
+            for (let i = 0; i < str1.length; i++) {
+                if (str2.includes(str1[i])) {
+                    matches++;
+                }
+            }
+
+            return matches / maxLength; // คืนค่าความคล้ายคลึงระหว่าง 0 ถึง 1
+        }
+
+        document.getElementById('convertButton').addEventListener('click', () => {
+            const normalWord = document.getElementById('normalWord').value.trim();
+            const output = toRoyalWord(normalWord);
+            const outputArea = document.getElementById('outputArea');
+            outputArea.textContent = output;
+            outputArea.classList.add('show');
+            setTimeout(() => {
+                outputArea.classList.remove('show');
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
